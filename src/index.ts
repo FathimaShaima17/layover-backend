@@ -11,6 +11,7 @@ async function bootstrap(): Promise<void> {
 
   // 2. Seed with initial data if the collection is empty
   await seedIfEmpty();
+  await seedDemoUsersIfEmpty();
 
   // 3. Create and start Express server
   const app = createApp();
@@ -56,6 +57,60 @@ async function seedIfEmpty(): Promise<void> {
   const { SEED_PLACES } = await import('./infrastructure/database/seed');
   await PlaceModel.insertMany(SEED_PLACES);
   console.log(`✅  Seeded ${SEED_PLACES.length} places successfully`);
+}
+
+/**
+ * Seeds three demo explorer accounts on first run.
+ * All demo accounts share the password `demo1234`.
+ * Only runs when the `users` collection is completely empty.
+ */
+async function seedDemoUsersIfEmpty(): Promise<void> {
+  const { UserModel } = await import('./infrastructure/database/UserModel');
+  const count = await UserModel.countDocuments();
+  if (count > 0) {
+    console.log(`📦  Database already has ${count} users — skipping demo seed`);
+    return;
+  }
+
+  console.log('🌱  Seeding demo explorer accounts...');
+  const bcrypt = await import('bcryptjs');
+  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
+
+  const demoUsers = [
+    {
+      name: 'Elena Rostova',
+      email: 'elena.rostova@explorer.org',
+      passwordHash: await bcrypt.hash('demo1234', saltRounds),
+      bio: 'Alpine wanderer, photographer, and chronicler of forgotten mountain chapels and coastal coves.',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      role: 'Master Explorer (Level 4)',
+      contributionsCount: 14,
+    },
+    {
+      name: 'Mateo Silva',
+      email: 'mateo.silva@wanderlust.net',
+      passwordHash: await bcrypt.hash('demo1234', saltRounds),
+      bio: 'Coastal scout chasing secret coves, sea caves, and the best fish tacos on the Pacific edge.',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+      role: 'Coastal Scout (Level 3)',
+      contributionsCount: 9,
+    },
+    {
+      name: 'Amina Kassam',
+      email: 'amina.k@atlasvoyager.io',
+      passwordHash: await bcrypt.hash('demo1234', saltRounds),
+      bio: 'Heritage chronicler documenting ancient shrines, craft workshops, and living traditions.',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
+      role: 'Heritage Chronicler (Level 5)',
+      contributionsCount: 21,
+    },
+  ];
+
+  await UserModel.insertMany(demoUsers);
+  console.log(`✅  Seeded ${demoUsers.length} demo accounts (password: demo1234)`);
 }
 
 bootstrap().catch((err: Error) => {

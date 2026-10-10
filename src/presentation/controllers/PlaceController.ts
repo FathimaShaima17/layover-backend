@@ -82,6 +82,10 @@ export class PlaceController {
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const input: CreatePlaceInput = req.body as CreatePlaceInput;
+      // Attribute the submission to the authenticated explorer
+      if (!input.submittedBy && req.user?.name) {
+        input.submittedBy = req.user.name;
+      }
       const place = await this.createPlace.execute(input);
       res.status(201).json({ success: true, data: place });
     } catch (err) {
