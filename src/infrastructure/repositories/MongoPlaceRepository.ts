@@ -97,7 +97,7 @@ export class MongoPlaceRepository implements IPlaceRepository {
   async create(input: CreatePlaceInput): Promise<Place> {
     const doc = await PlaceModel.create({
       ...input,
-      status: 'pending', // new submissions always start as pending
+      status: 'approved', // Auto-approved for live 3D world prototype
     });
     return this.toPlace(doc);
   }

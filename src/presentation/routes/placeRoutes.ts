@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PlaceController } from '../controllers/PlaceController';
-import { authenticate } from '../middleware/authMiddleware';
+import { optionalAuthenticate } from '../middleware/authMiddleware';
 
 /**
  * Builds the /api/places router.
@@ -21,8 +21,8 @@ export function createPlaceRouter(controller: PlaceController): Router {
   // GET /api/places/:id      – single place detail
   router.get('/:id', controller.getById);
 
-  // POST /api/places         – submit a new place (authenticated)
-  router.post('/', authenticate, controller.create);
+  // POST /api/places         – submit a new place (authenticated or guest demo)
+  router.post('/', optionalAuthenticate, controller.create);
 
   return router;
 }
